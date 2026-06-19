@@ -3,23 +3,20 @@
 TiDB Cloud 云端部署版
 """
 
-import streamlit as st
 import pymysql
+import streamlit as st
 import pandas as pd
-
-# ============================================================
-# TiDB Cloud 数据库配置
-# ============================================================
-DB_CONFIG = {
-    "host": "gateway01.ap-northeast-1.prod.aws.tidbcloud.com",
-    "port": 4000,
-    "user": "2brjp82BnLhgU4V.root",
-    "password": "gMF0RVozQGZ5TcGX",
-    "database": "test",
-    "charset": "utf8mb4",
-    "ssl": {"ssl": True},
-    "autocommit": True,
-}
+def get_connection():
+    DB_CONFIG = {
+        "host": st.secrets["TIDB_HOST"],
+        "port": 4000,
+        "user": st.secrets["TIDB_USER"],
+        "password": st.secrets["TIDB_PASSWORD"],
+        "database": st.secrets["TIDB_DATABASE"],
+        "ssl_disabled": True,
+        "connect_timeout": 10
+    }
+    return pymysql.connect(**DB_CONFIG)
 
 
 def get_connection():
