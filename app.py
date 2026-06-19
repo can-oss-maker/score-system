@@ -63,8 +63,24 @@ def get_db_label():
         return f"TiDB B ({db})"
 
 
+def ensure_database():
+    """确保目标数据库存在（先连 test 库创建目标库，test 库始终存在）"""
+    target_db = DB_CONFIG["database"]
+    if target_db == "test":
+        return  # test 库无需创建
+    config = dict(DB_CONFIG)
+    config["database"] = "test"
+    conn = pymysql.connect(**config)
+    cursor = conn.cursor()
+    cursor.execute(f"CREATE DATABASE IF NOT EXISTS `{target_db}`")
+    conn.commit()
+    cursor.close()
+    conn.close()
+
+
 def init_database():
     """初始化数据库表结构和示例数据"""
+    ensure_database()
     conn = get_connection()
     cursor = conn.cursor()
 
