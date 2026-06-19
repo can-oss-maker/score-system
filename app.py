@@ -170,7 +170,7 @@ menu = st.sidebar.radio(
 # 侧边栏底部 - 数据库信息
 st.sidebar.markdown("---")
 st.sidebar.caption("数据库模式：TiDB Cloud")
-st.sidebar.caption(f"数据库：{DB_CONFIG['database']}")
+st.sidebar.caption(f"数据库：{st.secrets['TIDB_DATABASE']}")
 
 if st.sidebar.button("🔄 初始化/重置数据库"):
     init_database()
