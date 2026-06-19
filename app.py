@@ -1,68 +1,30 @@
 """
 游戏角色管理系统 - Streamlit Web 应用
-支持本地 MySQL 和 TiDB Cloud 两种部署模式
+TiDB Cloud 云端部署版
 """
 
 import streamlit as st
 import pymysql
 import pandas as pd
-import os
 
 # ============================================================
-# 数据库配置（通过环境变量切换本地/云端模式）
+# TiDB Cloud 数据库配置
 # ============================================================
-# 本地模式（默认）：
-#   set USE_TIDB=false 或不设置该变量
-# 云端模式：
-#   set USE_TIDB=true
-#   set TIDB_HOST=gateway01.xxx.tidbcloud.com
-#   set TIDB_USER=xxxxx.root
-#   set TIDB_PASSWORD=你的密码
-# ============================================================
-
-USE_TIDB = os.getenv("USE_TIDB", "false").lower() == "true"
-
-if USE_TIDB:
-    DB_CONFIG = {
-        "host": os.getenv("TIDB_HOST", "gateway01.ap-southeast-1.prod.alicloud.tidbcloud.com"),
-        "port": int(os.getenv("TIDB_PORT", "4000")),
-        "user": os.getenv("TIDB_USER", "root"),
-        "password": os.getenv("TIDB_PASSWORD", ""),
-        "database": os.getenv("TIDB_DATABASE", "test"),
-        "charset": "utf8mb4",
-        "ssl": {"ssl": True},
-        "autocommit": True,
-    }
-else:
-  DB_CONFIG = {
-    "host": "gateway01ap-northeast-1.prod.aws.tidbcloud.com",
+DB_CONFIG = {
+    "host": "gateway01.ap-northeast-1.prod.aws.tidbcloud.com",
     "port": 4000,
-    "user": "4St8sEfasa8nHKP.root",
-    "password": "BmMEYLCoMTtnoc53",
-    "database": "score_system",
-    "ssl_disabled": True
+    "user": "2brjp82BnLhgU4V.root",
+    "password": "gMF0RVozQGZ5TcGX",
+    "database": "test",
+    "charset": "utf8mb4",
+    "ssl": {"ssl": True},
+    "autocommit": True,
 }
 
 
 def get_connection():
-    """获取数据库连接，自动建库（本地模式）"""
-    try:
-        return pymysql.connect(**DB_CONFIG)
-    except pymysql.err.OperationalError as e:
-        if e.args[0] == 1049 and not USE_TIDB:
-            # 数据库不存在，自动创建
-            temp_config = {k: v for k, v in DB_CONFIG.items() if k not in ("database", "ssl", "autocommit")}
-            conn = pymysql.connect(**temp_config)
-            cursor = conn.cursor()
-            cursor.execute(
-                "CREATE DATABASE IF NOT EXISTS game_character_system "
-                "DEFAULT CHARACTER SET utf8mb4 DEFAULT COLLATE utf8mb4_unicode_ci"
-            )
-            conn.commit()
-            cursor.close()
-            conn.close()
-            return pymysql.connect(**DB_CONFIG)
-        raise
+    """获取 TiDB Cloud 数据库连接"""
+    return pymysql.connect(**DB_CONFIG)
 
 
 def init_database():
@@ -210,7 +172,7 @@ menu = st.sidebar.radio(
 
 # 侧边栏底部 - 数据库信息
 st.sidebar.markdown("---")
-st.sidebar.caption(f"数据库模式：{'TiDB Cloud' if USE_TIDB else '本地 MySQL'}")
+st.sidebar.caption("数据库模式：TiDB Cloud")
 st.sidebar.caption(f"数据库：{DB_CONFIG['database']}")
 
 if st.sidebar.button("🔄 初始化/重置数据库"):
@@ -705,6 +667,6 @@ elif menu == "📚 角色技能关联":
 # ============================================================
 st.markdown("---")
 st.caption(
-    f"🎮 游戏角色管理系统 | 数据库：{'TiDB Cloud (test)' if USE_TIDB else 'MySQL (game_character_system)'} | "
-    f"Powered by Streamlit + PyMySQL"
+    "🎮 游戏角色管理系统 | 数据库：TiDB Cloud (test) | "
+    "Powered by Streamlit + PyMySQL"
 )
