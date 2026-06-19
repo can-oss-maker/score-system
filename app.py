@@ -35,7 +35,7 @@ if USE_TIDB:
     }
 else:
     DB_CONFIG = {
-        "host": "localhost",
+        "host": "127.0.0.1",  # 强制 IPv4，避免 localhost 解析为 ::1 导致 Errno 99
         "user": "root",
         "password": "root",
         "database": "game_character_system",
@@ -51,9 +51,7 @@ def get_connection():
     except pymysql.err.OperationalError as e:
         if e.args[0] == 1049 and not USE_TIDB:
             # 数据库不存在，自动创建
-            temp_config = {k: v for k, v in DB_CONFIG.items() if k != "database"}
-            temp_config.pop("ssl", None)
-            temp_config.pop("autocommit", None)
+            temp_config = {k: v for k, v in DB_CONFIG.items() if k not in ("database", "ssl", "autocommit")}
             conn = pymysql.connect(**temp_config)
             cursor = conn.cursor()
             cursor.execute(
