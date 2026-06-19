@@ -17,13 +17,21 @@ def get_connection():
         "connect_timeout": 10
     }
     return pymysql.connect(**DB_CONFIG)
-
+import pymysql
+import streamlit as st
 
 def get_connection():
-    """获取 TiDB Cloud 数据库连接"""
-    return pymysql.connect(**DB_CONFIG)
-
-
+    # 函数内部直接读取secrets，不再依赖外部DB_CONFIG
+    conn = pymysql.connect(
+        host=st.secrets["TIDB_HOST"],
+        port=4000,
+        user=st.secrets["TIDB_USER"],
+        password=st.secrets["TIDB_PASSWORD"],
+        database=st.secrets["TIDB_DATABASE"],
+        ssl_disabled=True,
+        connect_timeout=10
+    )
+    return conn
 def init_database():
     """初始化数据库表结构和示例数据"""
     conn = get_connection()
