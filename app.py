@@ -1,37 +1,68 @@
 """
 游戏角色管理系统 - Streamlit Web 应用
 TiDB Cloud 云端部署版
+支持 st.secrets（Streamlit Cloud）/ 环境变量 / 默认值 三级配置
 """
 
-import pymysql
 import streamlit as st
+import pymysql
 import pandas as pd
-def get_connection():
-    DB_CONFIG = {
-        "host": st.secrets["TIDB_HOST"],
-        "port": 4000,
-        "user": st.secrets["TIDB_USER"],
-        "password": st.secrets["TIDB_PASSWORD"],
-        "database": st.secrets["TIDB_DATABASE"],
-        "ssl_disabled": True,
-        "connect_timeout": 10
-    }
-    return pymysql.connect(**DB_CONFIG)
-import pymysql
-import streamlit as st
+import os
+
+# ============================================================
+# TiDB Cloud 数据库配置
+# 优先级：st.secrets > 环境变量 > 默认值
+#
+# ┌─────────────────────┬──────────────────────┬──────────────────────┐
+# │ 场景                │ 配置方式              │ 使用的 TiDB          │
+# ├─────────────────────┼──────────────────────┼──────────────────────┤
+# │ 本地（不做任何设置）  │ 走默认值              │ TiDB A（默认）        │
+# │ 本地临时切换         │ 设环境变量             │ 任意 TiDB            │
+# │ Streamlit Cloud      │ App Settings→Secrets  │ 任意 TiDB            │
+# └─────────────────────┴──────────────────────┴──────────────────────┘
+#
+# Streamlit Cloud Secrets 示例（在 App Settings → Secrets 粘贴）：
+#   TIDB_HOST = "gateway01.ap-northeast-1.prod.aws.tidbcloud.com"
+#   TIDB_USER = "4St8sEfasa8nHKP.root"
+#   TIDB_PASSWORD = "BmMEYLCoMTtnoc53"
+#   TIDB_DATABASE = "score_system"
+# ============================================================
+
+def _cfg(key, default):
+    """读取配置：st.secrets → 环境变量 → 默认值"""
+    try:
+        return st.secrets[key]
+    except Exception:
+        return os.getenv(key, default)
+
+
+DB_CONFIG = {
+    "host": _cfg("TIDB_HOST", "gateway01.ap-northeast-1.prod.aws.tidbcloud.com"),
+    "port": int(_cfg("TIDB_PORT", "4000")),
+    "user": _cfg("TIDB_USER", "2brjp82BnLhgU4V.root"),
+    "password": _cfg("TIDB_PASSWORD", "gMF0RVozQGZ5TcGX"),
+    "database": _cfg("TIDB_DATABASE", "test"),
+    "charset": "utf8mb4",
+    "ssl": {"ssl": True},
+    "autocommit": True,
+}
+
 
 def get_connection():
-    # 函数内部直接读取secrets，不再依赖外部DB_CONFIG
-    conn = pymysql.connect(
-        host=st.secrets["TIDB_HOST"],
-        port=4000,
-        user=st.secrets["TIDB_USER"],
-        password=st.secrets["TIDB_PASSWORD"],
-        database=st.secrets["TIDB_DATABASE"],
-        ssl_disabled=True,
-        connect_timeout=10
-    )
-    return conn
+    """获取 TiDB Cloud 数据库连接"""
+    return pymysql.connect(**DB_CONFIG)
+
+
+def get_db_label():
+    """返回当前使用的数据库标识"""
+    user = DB_CONFIG["user"]
+    db = DB_CONFIG["database"]
+    if "2brjp82" in user:
+        return f"TiDB A ({db})"
+    else:
+        return f"TiDB B ({db})"
+
+
 def init_database():
     """初始化数据库表结构和示例数据"""
     conn = get_connection()
@@ -177,8 +208,7 @@ menu = st.sidebar.radio(
 
 # 侧边栏底部 - 数据库信息
 st.sidebar.markdown("---")
-st.sidebar.caption("数据库模式：TiDB Cloud")
-st.sidebar.caption(f"数据库：{st.secrets['TIDB_DATABASE']}")
+st.sidebar.caption(f"数据库：{get_db_label()}")
 
 if st.sidebar.button("🔄 初始化/重置数据库"):
     init_database()
@@ -672,6 +702,6 @@ elif menu == "📚 角色技能关联":
 # ============================================================
 st.markdown("---")
 st.caption(
-    "🎮 游戏角色管理系统 | 数据库：TiDB Cloud (test) | "
+    f"🎮 游戏角色管理系统 | 数据库：TiDB Cloud ({get_db_label()}) | "
     "Powered by Streamlit + PyMySQL"
 )
