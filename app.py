@@ -34,14 +34,14 @@ if USE_TIDB:
         "autocommit": True,
     }
 else:
-    DB_CONFIG = {
-        "host": "127.0.0.1",  # 强制 IPv4，避免 localhost 解析为 ::1 导致 Errno 99
-        "user": "root",
-        "password": "root",
-        "database": "game_character_system",
-        "charset": "utf8mb4",
-        "autocommit": True,
-    }
+  DB_CONFIG = {
+    "host": "gateway01ap-northeast-1.prod.aws.tidbcloud.com",
+    "port": 4000,
+    "user": "4St8sEfasa8nHKP.root",
+    "password": BmMEYLCoMTtnoc53,
+    "database": "score_system",
+    "ssl_disabled": True
+}
 
 
 def get_connection():
