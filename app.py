@@ -38,7 +38,7 @@ else:
     "host": "gateway01ap-northeast-1.prod.aws.tidbcloud.com",
     "port": 4000,
     "user": "4St8sEfasa8nHKP.root",
-    "password": BmMEYLCoMTtnoc53,
+    "password": "BmMEYLCoMTtnoc53",
     "database": "score_system",
     "ssl_disabled": True
 }
